@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: dockerfile
+        container_name: currency-conversion-app
+        volumes:
+            - .:/var/www/html
+        environment:
+            - FIXER_API_KEY=${FIXER_API_KEY}
+            - DB_HOST=db
+            - DB_DATABASE=currency_conversion
+            - DB_USERNAME=root
+            - DB_PASSWORD=currencyConversion
+        depends_on:
+            - db
+        networks:
+            - app-network
+
+    webserver:
+        image: nginx:latest
+        container_name: currency-conversion-webserver
+        volumes:
+            - .:/var/www/html
+            - ./nginx.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - "8000:80"
+        depends_on:
+            - app
+        networks:
+            - app-network
+
+    db:
+        image: mysql:5.7
+        container_name: currency-conversion-db
+        environment:
+            MYSQL_DATABASE: currency_conversion
+            MYSQL_ROOT_PASSWORD: currencyConversion
+        ports:
+            - "3307:3306"
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - app-network
+
+volumes:
+    db_data:
+
+networks:
+    app-network:
